@@ -15,6 +15,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useAuthStore } from '../zustand/auth/useAuthStore';
 import { useNavigation } from '@react-navigation/native';
 import icons from '../constants/Icons';
+import { useToast } from 'react-native-toast-notifications';
+import { Width, Height, getResponsiveFont } from '../constants/size';
 
 const LoginScreen = () => {
   const { login, loading } = useAuthStore();
@@ -152,7 +154,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   title: {
-    fontSize: 22,
+    fontSize: getResponsiveFont(16),
     fontWeight: '700',
     marginBottom: 5,
     textAlign: 'center',

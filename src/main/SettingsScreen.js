@@ -12,20 +12,22 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '../context/ThemeContext';
 import { darkTheme, lightTheme } from '../constants/ThemeColors';
 import { resetnav, softnav } from '../services/NavigationService';
-import { useEmployeesStore } from '../zustand/employees/useEmployeesStore';
 import { getUsers} from "../services/localData"
 
 const SettingsScreen = () => {
   const { theme } = useContext(ThemeContext);
   const colors = theme === 'dark' ? darkTheme : lightTheme;
-  const { profile, getProfile, loading } = useEmployeesStore();
+  const [user, setUser] = React.useState(null);
 
 useEffect(() => {
   (async () => {
-    const user = await getUsers();
-    console.log("User:", user);
+    const storedUser = await getUsers();
+    if (storedUser) {
+      setUser(storedUser);
+    }
   })();
 }, []);
+
 
   const MenuItem = ({ icon, title, badge, onPress, showArrow = true }) => (
     <TouchableOpacity 
@@ -75,18 +77,25 @@ useEffect(() => {
         </View>
 
         {/* Profile Section */}
-        <TouchableOpacity style={[styles.profileSection, { backgroundColor: colors.card }]}>
-          <Image 
-            source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
-            style={styles.avatar}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text }]}>Jacob W.</Text>
-            <Text style={[styles.profilePhone, { color: colors.textSecondary }]}>+1 202 555 0147</Text>
-            <Text style={[styles.profileUsername, { color: colors.textSecondary }]}>@jacob_d</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={26} color="#C7C7CC" />
-        </TouchableOpacity>
+     <TouchableOpacity style={[styles.profileSection, { backgroundColor: colors.card }]}>
+  {/* <Image 
+    source={{ uri: 'https://i.pravatar.cc/150?img=12' }}
+    style={styles.avatar}
+  /> */}
+  <View style={styles.profileInfo}>
+    <Text style={[styles.profileName, { color: colors.text }]}>
+      {user?.name || 'No Name'}
+    </Text>
+    <Text style={[styles.profilePhone, { color: colors.textSecondary }]}>
+      {user?.phone || 'No Phone'}
+    </Text>
+    <Text style={[styles.profileUsername, { color: colors.textSecondary }]}>
+      @{user?.username || 'unknown'}
+    </Text>
+  </View>
+  <MaterialIcons name="chevron-right" size={26} color="#C7C7CC" />
+</TouchableOpacity>
+
 
         <View style={styles.menuSection}>
           <MenuItem 

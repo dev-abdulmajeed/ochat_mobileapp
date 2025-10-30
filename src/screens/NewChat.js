@@ -15,12 +15,16 @@ import { useEmployeesStore } from "../zustand/employees/useEmployeesStore";
 import { useNavigation } from "@react-navigation/native";
 import { ThemeContext } from "../context/ThemeContext";
 import { darkTheme, lightTheme } from "../constants/ThemeColors";
+import {useConversation} from "../zustand/conversation/useConversation";
+import { getUsers } from "../services/localData";
 
 const BASE_IMAGE_URL = "https://api.qa.osquare.solutions/";
 
 const NewChat = () => {
   const { theme } = useContext(ThemeContext);
   const colors = theme === "dark" ? darkTheme : lightTheme;
+  const { addConversation, addConversationMember } = useConversation();
+
 
   const { employees, loading, error, fetchEmployees, addToRecentChats } =
     useEmployeesStore();
@@ -64,7 +68,7 @@ const NewChat = () => {
       data: groupedEmployees[letter],
     }));
 
- const renderEmployee = ({ item }) => {
+const renderEmployee = ({ item }) => {
   const imageUrl = item.profilePic
     ? `${BASE_IMAGE_URL}/${item.profilePic}`
     : "https://cdn-icons-png.flaticon.com/512/847/847969.png";
@@ -73,13 +77,47 @@ const NewChat = () => {
     <TouchableOpacity
       style={[styles.employeeItem, { backgroundColor: colors.card }]}
       activeOpacity={0.6}
-      onPress={() => {
-        navigation.navigate("ChatScreen", {
-          userId: item.userId,
-          name: `${item.firstName} ${item.lastName}`,
-          email: item.email,
-          profilePic: item.profilePic,
-        });
+      onPress={async () => {
+        try {
+          const currentUser = getUsers();
+          
+          // 1️⃣ Create a new conversation
+          const conversation = await addConversation(
+            `${currentUser?.firstName} & ${item.firstName}`,
+            0 // type 0 = direct chat
+          );
+
+          if (!conversation?.id) {
+            console.warn("Conversation creation failed");
+            return;
+          }
+
+          // 2️⃣ Add current user as member
+          await addConversationMember(
+            conversation.id,
+            currentUser.id,
+            `${currentUser.firstName} ${currentUser.lastName}`,
+            true // isAdmin
+          );
+
+          // 3️⃣ Add the selected employee as member
+          await addConversationMember(
+            conversation.id,
+            item.userId,
+            `${item.firstName} ${item.lastName}`,
+            false
+          );
+
+          // 4️⃣ Navigate to Chat Screen
+          navigation.navigate("ChatScreen", {
+            conversationId: conversation.id,
+            name: `${item.firstName} ${item.lastName}`,
+            email: item.email,
+            profilePic: item.profilePic,
+          });
+        } catch (error) {
+          console.error("Error creating chat:", error);
+        }
       }}
     >
       <Image source={{ uri: imageUrl }} style={styles.avatar} />
@@ -94,7 +132,6 @@ const NewChat = () => {
     </TouchableOpacity>
   );
 };
-
 
   const renderSectionHeader = ({ section }) => (
     <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
