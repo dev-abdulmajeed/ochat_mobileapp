@@ -7,6 +7,7 @@ import { navigationRef } from './src/services/NavigationService';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { darkTheme, lightTheme } from './src/constants/ThemeColors';
+import { ToastProvider } from 'react-native-toast-notifications';
 
 const App = () => {
    
@@ -14,7 +15,9 @@ const App = () => {
     <SafeAreaView style={{flex:1}}>
     <NavigationContainer ref={navigationRef}>
       <ThemeProvider>
+        <ToastProvider>
       <NewStack />
+        </ToastProvider>
       </ThemeProvider>
     </NavigationContainer>
     </SafeAreaView>
